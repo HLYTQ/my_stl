@@ -246,7 +246,7 @@ public:
         return *this;
     }
 
-    constexpr vector operator=(vector&& other) {
+    constexpr vector& operator=(vector&& other) {
         assert(other != *this);
         m_data = other.m_data;
         m_size = other.m_size;
@@ -255,6 +255,7 @@ public:
         other.m_data = nullptr;
         other.m_size = 0;
         other.m_capacity = 0;
+        return *this;
     }
 
     ~vector() 
