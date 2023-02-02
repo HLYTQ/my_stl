@@ -5,19 +5,19 @@
  *  <https://zhuanlan.zhihu.com/p/85810006>
  */
 
-#include <cstddef>
 #include "type_traits.h"
+#include <cstddef>
 
 #define VERSION_C_OR_S 1 
 
 namespace tstl{
 
 // Five iterator types  ----tag
-//     单向移动只读迭代器 Input Iterator
-//     单向移动只写迭代器 Output Iterator
-//     单向移动读写迭代器 Forward Iterator
-//     双向移动读写迭代器 Bidirectional Iterator
-//     不定序读写迭代器   Random_access Iterator
+// 单向移动只读迭代器 Input Iterator
+// 单向移动只写迭代器 Output Iterator
+// 单向移动读写迭代器 Forward Iterator
+// 双向移动读写迭代器 Bidirectional Iterator
+// 不定序读写迭代器   Random_access Iterator
 
 struct input_iterator_tag { };
 
@@ -32,8 +32,7 @@ struct bidirectional_iterator_tag
 struct random_access_iterator_tag 
   : public bidirectional_iterator_tag { };
 
-// iterator template
-//     ptrdiff_t 设计用来保存两个指针之差
+// ptrdiff_t 设计用来保存两个指针之差
 
 template < class Category,class T,
            class Distance = ptrdiff_t,
@@ -41,9 +40,7 @@ template < class Category,class T,
            class Reference = T& >
 struct iterator
 {
-  //迭代器的类型
   using iterator_category = Category;
-  
   using value_type = T;
   using pointer = Pointer; 
   using reference = Reference;
@@ -52,15 +49,14 @@ struct iterator
 
 #if VERSION_C_OR_S
 
-//????????????????
-//传入迭代器类型，模板特化到char value = true
-//不是则匹配到two value = false
+// 传入迭代器类型，匹配到 char test()
+// 不是则匹配到 two test()
 template <class T>
 struct has_iterator_category{
 private:
-  struct two { 
-    char a, b;
-  };
+  struct two
+  { char a, b; };
+
   template <class U> 
     static two test(...);
   template <class U> 
@@ -70,7 +66,8 @@ public:
 };
 
 // iterator traits
-// If false ,do nothing.If true than do.
+// If false ,do nothing. If true than do.
+
 template <class I,bool>
 struct iterator_traits_impl {};
 
@@ -93,7 +90,7 @@ template <class I>
   { };
 
 // all the things have been done above is:
-// to check whether the tmplate 'class' is
+// to check whether the tamplate is
 // an iterator during the compile time
 
 template <class I>
@@ -110,7 +107,7 @@ struct iterator_traits<T*>{
   using difference_type   = ptrdiff_t;
 };
 
-// partial specialization for regular cosnt pointers
+// partial specialization for regular const pointers
 template <class T>
 struct iterator_traits<const T*>{
   using iterator_category = random_access_iterator_tag;

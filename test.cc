@@ -1,15 +1,12 @@
 #include <iostream>
-
-size_t len(const char* value)
-{
-  size_t len = 0;
-  for(;*value != char(0); value++)
-    len++;
-  return len;
-}
+#include "vector.h"
+#include <vector>
 
 int main(int argc , char* argv[]){
-  Enity<int> m(123);
-  std::cout<<*m.begin()<<std::endl;
+  tstl::vector<int> nums = {1,2,3};
+  nums.erase(nums.begin() + 1);
+  for(int x:nums){
+    std::cout<<x<<std::endl;
+  }
   return 0;
 }

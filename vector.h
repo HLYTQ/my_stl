@@ -10,7 +10,7 @@
 #include "iterator.h"
 #include "allocator.h"
 #include "util.h"
-#include <cassert>
+#include "algorithm.h"
 #include <initializer_list>
 
 namespace tstl{
@@ -24,7 +24,11 @@ public:
     using reference         = typename _Myvec::const_reference;
     using difference_type   = typename _Myvec::difference_type;
 
+    pointer m_ptr;
+
 public:
+    constexpr __vec_const_iterator() = default;
+
     constexpr __vec_const_iterator(pointer ptr)
         : m_ptr(ptr) { }
 
@@ -56,7 +60,7 @@ public:
     constexpr pointer operator->() 
     { return m_ptr; }
 
-    constexpr reference operator*()
+    constexpr reference operator*() const
     { return *m_ptr; }
 
     constexpr bool operator==(const __vec_const_iterator& other) 
@@ -65,7 +69,24 @@ public:
     constexpr bool operator!=(const __vec_const_iterator other)
     { return !(*this == other); }
 
-    constexpr reference& operator+=(const difference_type off) {
+    bool operator<(const __vec_const_iterator& _Right) const noexcept {
+        return m_ptr < _Right.m_ptr;
+    }
+
+    bool operator>(const __vec_const_iterator& _Right) const noexcept {
+        return _Right < *this;
+    }
+
+    bool operator<=(const __vec_const_iterator& _Right) const noexcept {
+        return !(_Right < *this);
+    }
+
+    bool operator>=(const __vec_const_iterator& _Right) const noexcept {
+        return !(*this < _Right);
+    }
+
+
+    constexpr __vec_const_iterator& operator+=(const difference_type off) {
         m_ptr += off;
         return *this;
     }
@@ -91,7 +112,6 @@ public:
         return m_ptr - right.m_ptr;
     }
 
-    pointer m_ptr;
 }; // end __vec_const_iterator
 
 
@@ -102,59 +122,65 @@ constexpr __vec_const_iterator<_Myvec> operator+(
 }
 
 template <class _Myvec>
-class __vec_iterator {
+struct iterator_traits<__vec_const_iterator<_Myvec>> {
+    using iterator_category = random_access_iterator_tag;
+    using pointer           = __vec_const_iterator<_Myvec>;
+    using value_type        = const typename pointer::value_type;
+    using difference_type   = typename pointer::difference_type;
+};
 
+// 这个应该修改成继承 __vec_const_iterator 的版本，这才是标准库给的设计
+// 已修改，需要验证
+template <class _Myvec>
+class __vec_iterator : public __vec_const_iterator<_Myvec> {
 public:
+    using my_base = __vec_const_iterator<_Myvec>;
+
     using iterator_category = random_access_iterator_tag;
     using value_type        = typename _Myvec::value_type;
     using pointer           = typename _Myvec::pointer;
     using reference         = typename _Myvec::reference;
     using difference_type   = typename _Myvec::difference_type;
 
-    constexpr __vec_iterator(pointer ptr)
-        : m_ptr(ptr) { }
+    constexpr __vec_iterator() = default;
 
-    constexpr reference operator*() const noexcept {
-        return *m_ptr;
+    constexpr __vec_iterator(pointer ptr) 
+        : __vec_const_iterator<_Myvec>(ptr) { }
+
+    constexpr reference operator*() const {
+        return const_cast<reference>(my_base::operator*());;
     }
-
-    constexpr bool operator==(const __vec_iterator& other) 
-    { return m_ptr == other.m_ptr; }
-    
-    constexpr bool operator!=(const __vec_iterator other)
-    { return !(*this == other); }
 
     constexpr pointer operator->()
     { return this->m_ptr; }
 
-
     constexpr reference operator[](const difference_type index )
-    { return m_ptr[index]; }
+    { return const_cast<reference>(my_base::operator[](index)); }
     
     constexpr __vec_iterator& operator++() {
-        ++m_ptr;
+        my_base::operator++();
         return *this;
     }
     
     constexpr __vec_iterator operator++(int) {
         __vec_iterator tmp = *this;
-        ++*this;
+        my_base::operator++();
         return tmp;
     }
 
     constexpr __vec_iterator& operator--() {
-        --m_ptr;
+        my_base::operator--();
         return *this;
     }
     
     constexpr __vec_iterator operator--(int) {
         __vec_iterator tmp = *this;
-        --*this;
+        my_base::operator--();
         return tmp;
     }
 
     constexpr __vec_iterator& operator+=(const difference_type off) {
-        m_ptr += off;
+        my_base::operator+=(off);
         return *this;
     }
 
@@ -165,7 +191,7 @@ public:
     }
 
     constexpr __vec_iterator& operator-=(const difference_type off) {
-        m_ptr -= off;
+        my_base::oparator-=(off);
         return *this;
     }
 
@@ -174,9 +200,24 @@ public:
         tmp -= off; 
         return tmp;
     }
-private:
-    pointer m_ptr;
+  
+       //pointer m_ptr;
 }; // end __vec_iterator
+
+template <class _Myvec>
+constexpr __vec_iterator<_Myvec> operator+(
+    typename __vec_iterator<_Myvec>::difference_type _Off, __vec_iterator<_Myvec> _Next) noexcept {
+    return _Next += _Off;
+}
+
+
+template <class _Myvec>
+struct iterator_traits<__vec_iterator<_Myvec>> {
+    using iterator_category = random_access_iterator_tag;
+    using pointer           = __vec_iterator<_Myvec>;
+    using value_type        = typename pointer::value_type;
+    using difference_type   = typename pointer::difference_type;
+};
 
 template <typename T, typename _Alloc = tstl::allocator<T>>
 class vector {
@@ -259,7 +300,7 @@ public:
     }
 
     ~vector() 
-    { _Alloc::destroy(m_data, m_data + m_size); }
+    { _Alloc::destroy(m_data, m_data + m_capacity); }
 
     // iterator below:
 
@@ -344,9 +385,16 @@ public:
 
     constexpr void resize(size_type newSize, const value_type& value);
 
-    constexpr iterator erase(const_iterator pos);
+    constexpr iterator erase(const_iterator where){
+        pointer xpos = m_data + (where - begin());
+        pointer end_(m_data + m_size);
+        tstl::move(xpos + 1, end_, xpos);
+        data_allocater::destroy(end_ - 1);
+        m_size--;
+        return xpos;
+    }
 
-    constexpr iterator erase(const_iterator first, const_iterator last);
+    //constexpr iterator erase(const_iterator first, const_iterator last);
 
     // some visit function below
 
@@ -371,7 +419,7 @@ public:
     }
 
 private:
-    // help to function below
+    // help function below
 
     void realloc(const size_t newCapacity) noexcept { 
         pointer newBlock = data_allocater::allocate(newCapacity);

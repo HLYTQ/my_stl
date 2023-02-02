@@ -16,7 +16,7 @@
 #pragma waring(push)
 #pragma waring(disable : 4100)
 
-#endif // end MSV_VER
+#endif
 
 namespace tstl{
 
@@ -26,17 +26,13 @@ void construct(_Ty* ptr){
     ::new (static_cast<void*>(ptr))_Ty();
 }
 
-// 这个在较新版的(>=201103L)的GCC版本中被遗弃了
-// 这里以防万一还是保留
+// 这个在较新版的(>=201103L)的GCC版本中被遗弃了, 我也选择弃用
 // template <class T1,typename T2>
 // void construct(T1* ptr,const T2& value){
 //     ::new (static_cast<void*>(ptr)) T2(value);
 // }
 
-// my_tiny_stl 提供的是 Args&& 
-// 好吧，GCC标准库也是，我想过 const Args&
-// 补充，这里的Args不解释为右值，在模板下
-// 应该称之为万能引用
+//一个万能引用的实例
 template <class T,typename... Args>
 void construct(T* ptr,Args&&... args){
     ::new (static_cast<void*>(ptr)) T(std::forward<Args>(args)...);
@@ -63,13 +59,13 @@ void destroy_one(Ty* pointer,std::false_type){
     {
         pointer->~Ty();
     }
-    // 这里 C++17 又用了个巨尼玛抽象的写法
+    // 这里 GCC C++17 用了个巨尼玛抽象的写法
 }
 
 template <class ForwardIter>
 void destroy_cat(ForwardIter, ForwardIter,std::true_type){}
 
-// If iterator than cast to regular pointe
+// If iterator than cast to regular pointer
 template <class ForwardIter>
 void destroy_cat(ForwardIter first,ForwardIter last,std::false_type){
     for(;first != last; ++first){

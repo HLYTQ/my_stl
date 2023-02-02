@@ -1,8 +1,7 @@
-// string header file
 // contain the basic_string and char_traits
 
-#ifndef _STRING_H_
-#define _STRING_H_
+#ifndef BASIC_STRING_H_
+#define BASIC_STRING_H_
 
 #include "iterator"
 #include "allocator.h"
@@ -86,8 +85,8 @@ namespace tstl{
     { return std::strlen(str); }
 
     constexpr static 
-    int compare(const char_type* lhs, const char_type* rhs, size_t n)
-    { return std::strcmp(lhs, rhs, n); }
+    int compare(const char_type* lhs, const char_type* rhs)
+    { return std::strcmp(lhs, rhs); }
 
     constexpr static 
     char_pointer copy(char_pointer dst, const char_pointer src, size_t n)
@@ -98,7 +97,7 @@ namespace tstl{
     { return static_cast<char_pointer>(std::memmove(dst,src,n)); }
 
     constexpr static 
-    char_pointer fill(char_pointer dst, const char_pointer ch, size_t n)
+    char_pointer fill(char_pointer dst, const char_type ch, size_t n)
     { return static_cast<char_pointer>(std::memset(dst,ch,n)); }
 
   };
@@ -109,22 +108,22 @@ namespace tstl{
     using char_pointer = char_type*;
 
     constexpr static size_t len(const char_type* str)
-    { return static_cast<char_pointer>(std::wcslen(str)); }
+    { return std::wcslen(str); }
 
     constexpr static 
     int compare(const char_type* lhs, const char_type* rhs, size_t n)
     { return std::wmemcmp(lhs,rhs,n);}
 
     constexpr static 
-    char_pointer copy(const char_type* dst, const char_type* src, size_t n)
-    { return static_cast<char_pointer>(std::memcpy(dst,src,n)); }
+    char_pointer copy(char_type* dst, const char_type* src, size_t n)
+    { return static_cast<char_pointer>(std::wmemcpy(dst,src,n)); }
 
     constexpr static 
-    char_pointer move(const char_type* dst, const char_type* src, size_t n)
+    char_pointer move(char_type* dst, const char_type* src, size_t n)
     { return static_cast<char_pointer>(std::wmemmove(dst,src,n)); }
 
     constexpr static 
-    char_pointer fill(const char_type* dst, const char_type ch, size_t n)
+    char_pointer fill(char_type* dst, const char_type ch, size_t n)
     { return static_cast<char_pointer>(std::wmemset(dst,ch,n)); }
   };
 
@@ -231,4 +230,4 @@ public:
   
 } // end namespace tstl
 
-#endif // _STRING_H
+#endif // BASIC_STRING_H
