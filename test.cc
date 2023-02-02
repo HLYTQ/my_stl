@@ -9,7 +9,7 @@ size_t len(const char* value)
 }
 
 int main(int argc , char* argv[]){
-  std::cout<< len("Iam")<<std::endl;
-  std::cout<<(s1 < s3)<<std::endl;
+  Enity<int> m(123);
+  std::cout<<*m.begin()<<std::endl;
   return 0;
 }
