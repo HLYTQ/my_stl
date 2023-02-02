@@ -6,7 +6,7 @@
 
 
 // it to much,so use this cpp std type_traits
-#include<type_traits>
+#include <type_traits>
 
 /* 2020-12-13 (cpp) tangzheng  */
 
@@ -181,6 +181,14 @@ template<typename>
     { };
 
 //and other type like  array, point as well... if need than add them
+
+  template <bool _Pre, typename _Tp = void>
+    struct enable_if { };
+  
+  template <typename _Tp>
+    struct enable_if<true, _Tp>{
+      using type = _Tp;
+    };  
 
 
 

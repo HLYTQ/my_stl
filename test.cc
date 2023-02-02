@@ -1,20 +1,15 @@
-#include<iostream>
-#include "vector.h"
-#include<string>
-#include<vector>
-using namespace tstl;
+#include <iostream>
 
-
-int main(){
-  vector<std::string> one;
-  for(int i = 0; i < 10; i++)
-  {
-      one.emplace_back("I am the storm that is approaching");
-  }
-  
-  for(auto it:one)
-    std::cout<< it << std::endl;
-
-  return 0;
+size_t len(const char* value)
+{
+  size_t len = 0;
+  for(;*value != char(0); value++)
+    len++;
+  return len;
 }
 
+int main(int argc , char* argv[]){
+  std::cout<< len("Iam")<<std::endl;
+  std::cout<<(s1 < s3)<<std::endl;
+  return 0;
+}

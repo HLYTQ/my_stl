@@ -304,7 +304,8 @@ public:
         data_allocater::construct(m_data + m_size, tstl::move(value));
         ++m_size;
     }
-
+    
+    // c++14
     template<typename ...Args>
     constexpr decltype(auto) emplace_back(Args&& ...args) {
         if(m_size > m_capacity)
@@ -341,8 +342,11 @@ public:
         }
     }
 
-
     constexpr void resize(size_type newSize, const value_type& value);
+
+    constexpr iterator erase(const_iterator pos);
+
+    constexpr iterator erase(const_iterator first, const_iterator last);
 
     // some visit function below
 
