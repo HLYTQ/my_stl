@@ -52,6 +52,7 @@ struct array{
 
     // Support for zero-sized arrays mandator
     typedef tstl::__array_traits<_Tp, N_m> _AT_Type;
+    // 实际的数组所在，C++绝对要将数组视为一个类型
     typename _AT_Type::_Type                m_elem;        
 
     array() = default;
@@ -71,7 +72,6 @@ struct array{
     reverse_iterator
     rbegin() noexcept
     { return reverse_iterator(end()); }
-       
 
     const_reverse_iterator
     rbegin() const noexcept

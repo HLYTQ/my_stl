@@ -11,6 +11,7 @@
 #include "allocator.h"
 #include "util.h"
 #include "algorithm.h"
+#include <assert.h>
 #include <initializer_list>
 
 namespace tstl{
@@ -98,8 +99,7 @@ public:
     }
 
     constexpr __vec_const_iterator& operator-=(const difference_type off) {
-        m_ptr -= off;
-        return *this;
+        return *this += -off;
     }
     
     constexpr __vec_const_iterator operator-(const difference_type off) const {
@@ -191,7 +191,7 @@ public:
     }
 
     constexpr __vec_iterator& operator-=(const difference_type off) {
-        my_base::oparator-=(off);
+        my_base::operator-=(off);
         return *this;
     }
 
@@ -200,8 +200,10 @@ public:
         tmp -= off; 
         return tmp;
     }
-  
-       //pointer m_ptr;
+
+    constexpr difference_type operator-(const __vec_iterator& right) const {
+        return this->m_ptr - right.m_ptr;
+    }
 }; // end __vec_iterator
 
 template <class _Myvec>
@@ -248,6 +250,9 @@ public:
 
     constexpr vector()
     { try_init(); }
+
+    constexpr vector(const size_type count)
+    { construct_n_copies(count, value_type()); }
 
     constexpr vector(const size_type count, const value_type& value)
     { construct_n_copies(count, value); }
@@ -299,34 +304,49 @@ public:
         return *this;
     }
 
-    ~vector() 
-    { _Alloc::destroy(m_data, m_data + m_capacity); }
+    ~vector() { 
+        data_allocater::destroy(m_data, m_data + m_size);
+        data_allocater::deallocate(m_data, m_size);
+        m_size = m_capacity = 0;
+    }
 
     // iterator below:
 
-    constexpr iterator begin()
+    constexpr iterator begin() noexcept
     { return iterator(m_data); }
 
-    constexpr const_iterator begin() const 
+    constexpr const_iterator begin() const noexcept
     { return const_iterator(m_data); }
 
-    constexpr iterator end()
+    constexpr iterator end() noexcept
     { return iterator(m_data + m_size); }
 
-    constexpr const_iterator end() const
+    constexpr const_iterator end() const noexcept
     { return const_iterator(m_data + m_size); }
 
-    constexpr reverse_iterator rbegin() 
+    constexpr reverse_iterator rbegin() noexcept
     { return reverse_iterator(end()); }
 
-    constexpr reverse_const_iterator rbegin() const
+    constexpr reverse_const_iterator rbegin() const noexcept
     { return reverse_const_iterator(end()); }
 
-    constexpr reverse_iterator rend() 
+    constexpr reverse_iterator rend() noexcept
     { return reverse_iterator(begin()); }
 
-    constexpr reverse_const_iterator rend() const 
+    constexpr reverse_const_iterator rend() const noexcept
     { return reverse_const_iterator(begin()); }
+
+    const_iterator cbegin() const noexcept 
+    { return begin(); }
+
+    const_iterator cend() const noexcept
+    { return end(); }
+
+    reverse_const_iterator crbegin() const noexcept
+    { return rbegin(); }
+    
+    reverse_const_iterator crend() const noexcept
+    { return rend(); }
 
     // some basic function below: 
 
@@ -349,7 +369,7 @@ public:
     // c++14
     template<typename ...Args>
     constexpr decltype(auto) emplace_back(Args&& ...args) {
-        if(m_size > m_capacity)
+        if(m_size >= m_capacity)
             realloc(m_capacity + m_capacity/2);
 
         data_allocater::construct(m_data + m_size, tstl::forward<Args>(args)...);
@@ -383,7 +403,17 @@ public:
         }
     }
 
-    constexpr void resize(size_type newSize, const value_type& value);
+    constexpr void resize(size_type newSize)
+    { resize(newSize,value_type()); };
+
+    constexpr void resize(size_type newSize, const value_type& value){
+        if(newSize < m_size) erase(begin() + newSize,end());
+        else {
+            size_type n = newSize - m_size;
+            for(size_type i = 0; i < n; ++i)
+                emplace_back(value);
+        }
+    }
 
     constexpr iterator erase(const_iterator where){
         pointer xpos = m_data + (where - begin());
@@ -394,7 +424,14 @@ public:
         return xpos;
     }
 
-    //constexpr iterator erase(const_iterator first, const_iterator last);
+    constexpr iterator erase(const_iterator first, const_iterator last) {
+        pointer end_(m_data + m_size);
+        const auto n = first - begin();
+        pointer r = m_data + n;
+        data_allocater::destroy(tstl::move(r + (last - first), end_, r), end_);
+        m_size -= last - first;
+        return iterator(m_data) + n;
+    }
 
     // some visit function below
 
