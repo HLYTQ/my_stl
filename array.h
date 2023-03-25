@@ -106,6 +106,7 @@ struct array{
     { return size() == 0; }
 };
 
-}// end namespace tstl
+  
+}// END namespace tstl
 
 #endif // end ARRAY_H

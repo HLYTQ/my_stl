@@ -184,12 +184,11 @@ template<typename>
 
   template <bool _Pre, typename _Tp = void>
     struct enable_if { };
-  
+
   template <typename _Tp>
     struct enable_if<true, _Tp>{
       using type = _Tp;
     };  
-
 
 
 }// namespace tstl

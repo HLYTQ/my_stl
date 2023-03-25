@@ -13,6 +13,7 @@
 #include "iterator.h"
 #include "algorithm.h"
 #include <cassert>
+#include <iostream>
 #include <cstring>
 
 namespace tstl{
@@ -422,9 +423,15 @@ public:
     assert(index < m_size);
     return m_str[index];
   }
+  template <typename ch>
+  friend std::ostream& operator<<(std::ostream& stream, const basic_string<ch>& string);
 
-};  
-  
+};
+  template <typename ch>
+  std::ostream& operator<<(std::ostream& stream, const basic_string<ch>& string){
+    stream<<string.m_str;
+    return stream;
+  }
 } // end namespace tstl
 
 #endif // BASIC_STRING_H
