@@ -125,7 +125,8 @@ void rotate_right(NodePtr x, NodePtr& root) noexcept {
 // case 5: 父节点为红，叔叔节点为 NIL 或黑色，父节点为左（右）孩子，当前节点为左（右）孩子，
 //         让父节点变为黑色，祖父节点变为红色，以祖父节点为支点右（左）旋
 // https://www.bilibili.com/video/BV1jf4y1M7XM?p=42&vd_source=53f17d97d3e6f3320ea1669222833ce7+
-template <typename NodePtr> void insert_reblance(NodePtr x, NodePtr &root) {
+template <typename NodePtr> 
+void insert_reblance(NodePtr x, NodePtr &root) {
     set_red(x);
     // case 3:
     while (x != root && is_red(x->parent)) {
@@ -172,6 +173,10 @@ template <typename NodePtr> void insert_reblance(NodePtr x, NodePtr &root) {
     set_black(root);
 }
 
+template <typename NodePtr>
+void erase_reblance(NodePtr x, NodePtr& root, NodePtr& left, NodePtr& right) {
+    
+}
 
 
 
