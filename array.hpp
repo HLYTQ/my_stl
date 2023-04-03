@@ -6,7 +6,7 @@
 #ifndef ARRAY_H_
 #define ARRAY_H_
 
-#include "iterator.h"
+#include "iterator.hpp"
 
 namespace tstl{
 

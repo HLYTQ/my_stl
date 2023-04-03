@@ -8,9 +8,9 @@
 // destory   : 析构
 
 #include <new>
-#include "type_traits.h"
-#include "iterator.h"
-#include "util.h"
+#include "type_traits.hpp"
+#include "iterator.hpp"
+#include "util.hpp"
 
 #ifdef _MSC_VER
 

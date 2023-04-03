@@ -6,8 +6,8 @@
 #ifndef ALLOCATOR_H_
 #define ALLOCATOR_H_
 
-#include "construct.h"
-#include "util.h"
+#include "construct.hpp"
+#include "util.hpp"
 #include <cstddef>
 
 namespace tstl{

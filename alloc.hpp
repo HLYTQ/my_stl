@@ -9,8 +9,9 @@
 #ifndef _ALLOC_H_
 #define _ALLOC_H_
 
-#include "util.h"
+#include "util.hpp"
 #include <cstddef>
+#include <cstdint>
 #include <climits>
 
 namespace tstl {

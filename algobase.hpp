@@ -1,8 +1,8 @@
 #ifndef ALGOBASE_H_
 #define ALGOBASE_H_
 
-#include "iterator.h"
-#include "util.h"
+#include "iterator.hpp"
+#include "util.hpp"
 #include <cstring>
 
 /* 此文件的算法繁琐而多，许多直接复制了事了 */

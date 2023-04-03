@@ -6,6 +6,8 @@
 
 
 // it to much,so use this cpp std type_traits
+#include <cstdio>
+#include <pthread.h>
 #include <type_traits>
 
 /* 2020-12-13 (cpp) tangzheng  */
@@ -24,6 +26,14 @@ template <bool b>
 
 using m_true_type = m_bool_constant<true>;
 using m_false_type = m_bool_constant<false>;
+
+template <typename, typename>
+  	struct is_same : public m_false_type
+  	{ };
+
+template <typename Tp>
+  	struct  is_same<Tp,Tp> :public m_true_type
+  	{ };
 
 template<class T1,class T2>
     struct pair;

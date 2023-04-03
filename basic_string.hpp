@@ -8,13 +8,15 @@
 #ifndef BASIC_STRING_H_
 #define BASIC_STRING_H_
 
-#include "iterator"
-#include "allocator.h"
-#include "iterator.h"
-#include "algorithm.h"
+#include "allocator.hpp"
+#include "iterator.hpp"
+#include "algorithm.hpp"
 #include <cassert>
 #include <iostream>
 #include <cstring>
+#include <istream>
+#include <ostream>
+#include <sstream>
 
 namespace tstl{
 
@@ -115,7 +117,7 @@ namespace tstl{
   };
 
   template<>
-  struct char_traits<wchar_t>{
+  struct char_traits<wchar_t> {
     using char_type = wchar_t;
     using char_pointer = char_type*;
 
@@ -146,7 +148,7 @@ namespace tstl{
     using char_type = char16_t;
     using char_pointer = char_type*;
 
-     static 
+    static 
     size_t len(const char_type* str) noexcept {
       size_t len = 0;
       for (; *str != char_type(0); ++str)
@@ -154,7 +156,7 @@ namespace tstl{
       return len;
     }
 
-     static 
+    static 
     int compare(const char_type* s1, const char_type* s2, size_t n) noexcept {
       for (; n != 0; --n, ++s1, ++s2){
         if (*s1 < *s2) return -1;
@@ -163,7 +165,7 @@ namespace tstl{
       return 0;
     }
 
-     static 
+    static 
     char_type* copy(char_type* dst, const char_type* src, size_t n) noexcept {
       char_type* r = dst;
       for (; n != 0; --n, ++dst, ++src)
@@ -171,7 +173,7 @@ namespace tstl{
       return r;
     }
 
-     static 
+    static 
     char_type* move(char_type* dst, const char_type* src, size_t n) noexcept {
       char_type* r = dst;
       if (dst < src) {
@@ -187,7 +189,7 @@ namespace tstl{
       return r;
     }
 
-     static 
+    static 
     char_type* fill(char_type* dst, char_type ch, size_t count) noexcept {
       char_type* r = dst;
       for (; count > 0; --count, ++dst)
@@ -201,7 +203,7 @@ namespace tstl{
     using char_type = char32_t;
     using char_pointer = char_type*;
 
-     static 
+    static 
     size_t len(const char_type* str) noexcept {
       size_t len = 0;
       for (; *str != char_type(0); ++str)
@@ -209,7 +211,7 @@ namespace tstl{
       return len;
     }
 
-     static 
+    static 
     int compare(const char_type* s1, const char_type* s2, size_t n) noexcept {
       for (; n != 0; --n, ++s1, ++s2){
         if (*s1 < *s2) return -1;
@@ -218,7 +220,7 @@ namespace tstl{
       return 0;
     }
 
-     static 
+    static 
     char_type* copy(char_type* dst, const char_type* src, size_t n) noexcept {
       char_type* r = dst;
       for (; n != 0; --n, ++dst, ++src)
@@ -226,7 +228,7 @@ namespace tstl{
       return r;
     }
 
-     static 
+    static 
     char_type* move(char_type* dst, const char_type* src, size_t n) noexcept {
       char_type* r = dst;
       if (dst < src) {
@@ -250,7 +252,11 @@ namespace tstl{
       return r;
     }
   };
- 
+
+// 实现了基本的功能，还有很多运算符没有重载
+// 没有实现小字符串优化，后面如果有其他需要
+// 可以进一步添加
+
 template <typename _Char, 
           typename _Traits = char_traits<_Char>, 
           typename _Alloc = tstl::allocator<_Char>>
@@ -278,8 +284,7 @@ private:
   size_type m_size = 0;
   size_type m_capacity = 0;
 
-public:
-  // construct function:
+public: // construct function:
    basic_string() { }
 
   /**
@@ -301,11 +306,12 @@ public:
   }
 
   basic_string(const_pointer str){
+    m_size = traits_type::len(str);
     init_from(str);
   }
 
   basic_string(const_pointer str, size_type count){
-    m_size = char_traits<char_type>::len(str) - count;
+    m_size = traits_type::len(str) - count;
     choose_init_on_hs(str + count,tstl::max(m_size,size_type(0)));
   }
 
@@ -316,15 +322,39 @@ public:
     init_on_heap(first, tstl::max(m_size,size_type(0)));
   }
  
-  basic_string(const basic_string& other);
+  basic_string(const basic_string& other){
+    m_size = other.m_size;
+    init_on_heap(other.m_str, other.m_size); 
+  }
 
-  basic_string(basic_string&& other);
+  basic_string(basic_string&& other)
+    : m_str(other.m_str), m_size(other.m_size), m_capacity(other.m_capacity)
+  {
+    other.m_str = nullptr;
+    other.m_size = 0;
+    other.m_capacity = 0;
+  }
 
-  basic_string& operator=(const basic_string& other);
+  basic_string& operator=(const basic_string& other) {
+    if(&other != this){
+      init_on_heap(other.m_str, other.m_size);
+    }
+    return *this;
+  }
   
-  basic_string& operator=(basic_string&& other);
+  basic_string& operator=(basic_string&& other) {
+    if(&other != this){
+      m_str = other.m_str;
+      m_size = other.m_size;
+      m_capacity = other.m_capacity;
+      other.m_str = nullptr;
+      other.m_size = 0;
+      other.m_capacity = 0;
+    }
+    return *this;
+  }
   
-  // if use C++20, I can have  destruct function
+  // if use C++20, I can have destruct function
   ~basic_string() noexcept
   { destory_string(); }
 
@@ -364,11 +394,63 @@ public:
     tmp += off;
     return tmp;
   }
-
+  
   // some basic function
   
   size_t size() 
   { return static_cast<size_t>(m_size); }
+
+  // append function
+
+  basic_string& append(const_pointer str, size_type count){
+    size_type n = m_size + count; 
+    if(m_capacity < n)
+      realloc(n + n/2);
+    for(int i = 0; i < count; ++i)
+      data_allocator::construct(m_str + m_size + i, str[i]);
+    m_size = n;
+    return *this;
+  }
+
+  basic_string& append(const_pointer str)
+  { return append(str, traits_type::len(str)); }
+
+  basic_string& append(size_type count, char_type ch){
+    size_type n = m_size + count;
+    if(m_capacity < n)
+      realloc(n + n/2);
+    for(size_type i = 0; i < count; ++i) 
+      data_allocator::construct(m_str + m_size + i, ch);
+    m_size = n;
+    return *this;
+  }
+
+  basic_string& append(const basic_string& other, size_type pos, size_type count){
+    size_type n = m_size + count; 
+    if(m_capacity < n)
+      realloc(n + n/2);
+    for(int i = 0; i < count; ++i)
+      data_allocator::construct(m_str + m_size + i, other[pos + i]);
+    m_size = n;
+    return *this;
+  }
+
+  basic_string& append(const basic_string& other){
+    return append(other, 0, other.m_size);
+  }
+
+  template <typename Iter, typename std::enable_if<
+    tstl::is_input_iterator<Iter>::value, int>::type = 0>
+  basic_string& append(Iter first, Iter last) {
+    size_type n = last - first;
+    for(;first != last; ++first, --last){
+      this->append(1,*first);
+    }
+  }
+   
+  basic_string& operator+=(const basic_string& other){
+    return this->append(other);
+  }
 
   // helper function
   // BECAREFUL!!! every operate on string must through char_traits
@@ -391,8 +473,6 @@ private:
   }
 
    void destory_string(){
-    if(m_size <= 15)
-      return;
     data_allocator::deallocate(m_str);
     m_size = m_capacity = 0;
   }
@@ -403,10 +483,10 @@ private:
     if(newCapacity < m_size) 
         m_size = newCapacity;
         
-    for(size_t i =  0; i < m_size; ++i)
-        tstl::construct(newBlock + i, m_str[i]);
+    for(size_type i =  0; i < m_size; ++i)
+        data_allocator::construct(newBlock + i, m_str[i]);
         
-    tstl::destroy(m_str, m_str + m_size);
+    data_allocator::destroy(m_str, m_str + m_size);
 
     m_str = newBlock;
     m_capacity = newCapacity;
@@ -423,15 +503,28 @@ public:
     assert(index < m_size);
     return m_str[index];
   }
-  template <typename ch>
-  friend std::ostream& operator<<(std::ostream& stream, const basic_string<ch>& string);
+  template <typename Tp>
+  friend std::ostream& operator<<(std::ostream& os, const basic_string<Tp>& str);
+  
+};  
 
-};
-  template <typename ch>
-  std::ostream& operator<<(std::ostream& stream, const basic_string<ch>& string){
-    stream<<string.m_str;
-    return stream;
-  }
+template <typename Tp>
+std::ostream& operator<<(std::ostream& os, const tstl::basic_string<Tp>& str){
+    os << str.m_str;
+  return os;
+}
+
+template <typename char_type>
+basic_string<char_type>
+operator+(const basic_string<char_type>& lhs,
+          const basic_string<char_type>& rhs)
+{
+  basic_string<char_type> tmp(lhs);
+  tmp.append(rhs);
+  return tmp;
+}
+
+
 } // end namespace tstl
 
 #endif // BASIC_STRING_H

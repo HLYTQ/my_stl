@@ -7,10 +7,10 @@
 #ifndef VECTOR_H_
 #define VECTOR_H_
 
-#include "iterator.h"
-#include "allocator.h"
-#include "util.h"
-#include "algorithm.h"
+#include "iterator.hpp"
+#include "allocator.hpp"
+#include "util.hpp"
+#include "algorithm.hpp"
 #include <assert.h>
 #include <initializer_list>
 
